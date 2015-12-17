@@ -38,15 +38,16 @@ mkdir "$TMPDIR"
 svn co "$PLUGINSVN/trunk" "$TMPDIR" > /dev/null
 
 # Extract files from the Git tag to there
-git archive --format="zip" -0 "$TAG" | tar -C "$TMPDIR" -xf -
+git archive --format="tar" "$TAG" | tar -C "$TMPDIR" -xf -
 
 # Switch to build dir
 cd "$TMPDIR"
 
 # Run build tasks
-sed -e "s/{{TAG}}/$VERSION/g" < "$PLUGINDIR/bin/readme.txt" > readme.txt
-sed -e "s/{{DATE}}/$TODAY/g" < readme.txt > readme.txt
-cp readme.txt+changelog.txt readme.txt
+sed -e "s/{{TAG}}/$VERSION/g" < "$PLUGINDIR/bin/readme.txt" > readme.working
+sed -e "s/{{DATE}}/$TODAY/g" < readme.working > readme.working
+cat readme.working "$PLUGINDIR/bin/changelog.txt" > readme.txt
+rm readme.working
 
 # Remove special files
 rm -r "bin"
