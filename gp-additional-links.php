@@ -15,18 +15,6 @@ class GP_Additional_Links {
 
 	public function __construct() {
 		
-		// Check to see if there is a user currently logged in.
-		if ( is_user_logged_in() ) {
-			// If someone is logged in, get their user object.
-			$user_obj = wp_get_current_user();
-			
-			// Load the user translate key from the WordPress user meta table, using the currently logged in user id.
-			$user_key = get_user_meta( $user_obj->id, 'gp_google_translate_key', true );
-			
-			// If there is a user key, override the global key.
-			if( $user_key ) { $this->key = $user_key; }
-		}
-
 		// Add the dashboard link to the side menu.
 		add_filter( 'gp_nav_menu_items', array( $this, 'gp_nav_menu_items' ), 10, 2 );
 		
