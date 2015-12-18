@@ -51,6 +51,7 @@ rm readme.one
 rm readme.two
 
 # Remove special files
+rm README.md
 rm -r "bin"
 
 # Add any new files, disable error trapping and then check to see if there are any results, if not, don't run the svn add command as it fails.
