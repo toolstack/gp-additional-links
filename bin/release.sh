@@ -44,16 +44,23 @@ git archive --format="tar" "$TAG" | tar -C "$TMPDIR" -xf -
 cd "$TMPDIR"
 
 # Run build tasks
-sed -e "s/{{TAG}}/$VERSION/g" < "$PLUGINDIR/bin/readme.txt" > readme.working
-sed -e "s/{{DATE}}/$TODAY/g" < readme.working > readme.working
-cat readme.working "$PLUGINDIR/bin/changelog.txt" > readme.txt
-rm readme.working
+sed -e "s/{{TAG}}/$VERSION/g" < "$PLUGINDIR/bin/readme.txt" > readme.one
+sed -e "s/{{DATE}}/$TODAY/g" < readme.one > readme.two
+cat readme.two "$PLUGINDIR/bin/changelog.txt" > readme.txt
+rm readme.one
+rm readme.two
 
 # Remove special files
 rm -r "bin"
 
-# Add any new files
-svn status | grep -v "^.[ \t]*\..*" | grep "^?" | awk '{print $2}' | xargs svn add
+# Add any new files, disable error trapping and then check to see if there are any results, if not, don't run the svn add command as it fails.
+set +e
+svn status | grep -v "^.[ \t]*\..*" | grep "^?"
+if $? -neq 0; then
+        set -e
+        svn status | grep -v "^.[ \t]*\..*" | grep "^?" | awk '{print $2}' | xargs svn add
+fi
+set -e
 
 # Pause to allow checking
 echo "About to commit $VERSION. Double-check $TMPDIR to make sure everything looks fine."

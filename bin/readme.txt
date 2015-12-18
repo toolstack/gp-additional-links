@@ -30,4 +30,3 @@ TBD
 
 = {{TAG}} =
 * Release Date: {{DATE}}
-
