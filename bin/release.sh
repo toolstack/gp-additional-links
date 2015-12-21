@@ -83,10 +83,10 @@ fi
 
 # Find any deleted files and run svn delete.
 set +e
-tar -df "$TARNAME" 2>&1 | grep "No such file or directory" 
+tar -df "$TARNAME" 2>&1 | grep "Not found in archive" 
 if (( $? == 0 )); then
 	set -e
-	tar -df "$TARNAME" 2>&1 | grep "No such file or directory" | sed -e "s/tar: \(.*\): Warning:.*/\1/g" | xargs svn delete $SVN_OPTIONS
+	tar -df "$TARNAME" 2>&1 | grep "Not found in archive" | sed -e "s/tar: \(.*\): Warning:.*/\1/g" | xargs svn delete $SVN_OPTIONS
 fi
 
 set -e
