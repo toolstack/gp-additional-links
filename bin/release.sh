@@ -1,19 +1,27 @@
 # release.sh
 #
 # Takes a tag to release, and syncs it to WordPress.org
+#
+# Notes:
+#		- You must pass in a valid tag to the script as the first parameter
+#		- You can pass an SVN user name as the second parameter of the script if your SVN account is not the same as your current user id.
+#		- By default the plugin name used for WordPress.org is the directory name, if this is not the case, change the "PLUGIN=" line below.
+#		- 
 
 TAG=$1
+INBIN=""
 
 # Check to see if we're in the bin directory, if so go up one as the script assumes we're in the root of the git repo.
 if [ "${PWD##*/}" == "bin" ]; then
 	cd ..
+	INBIN="/bin"
 fi
 
-PLUGIN="gp-additional-links"
-TMPDIR=/tmp/release-svn
+PLUGIN="${PWD##*/}"
+TMPDIR=`mktemp -d`
+TARFILE=`mktemp`
 PLUGINDIR="$PWD"
 PLUGINSVN="https://plugins.svn.wordpress.org/$PLUGIN"
-TODAY=`date +'%B %d, %Y'`
 
 if [ "$2" !=  "" ]; then
 	SVN_OPTIONS=" --username $2"
@@ -37,7 +45,7 @@ fi
 
 if [ -d "$TMPDIR" ]; then
 	# Wipe it clean
-	rm -r "$TMPDIR"
+	rm -rf "$TMPDIR"
 fi
 
 # Ensure the directory exists first
@@ -47,7 +55,8 @@ mkdir "$TMPDIR"
 svn co "$PLUGINSVN/trunk" "$TMPDIR" > /dev/null
 
 # Extract files from the Git tag to there
-git archive --format="tar" "$TAG" | tar -C "$TMPDIR" -xf -
+git archive --format="tar" "$TAG" > "$TARFILE"
+tar -C "$TMPDIR" -xf "$TARFILE"
 
 # Switch to build dir
 cd "$TMPDIR"
@@ -57,21 +66,32 @@ sed -e "s/{{TAG}}/$VERSION/g" < "$PLUGINDIR/bin/readme.template" > readme.temp
 sed -e "s/##\(.*\)/==\1 ==/g" < "$PLUGINDIR/CHANGES.md" > changelog.temp
 cat readme.temp changelog.temp > readme.txt
 rm readme.temp
-rm changelog.txt
+rm changelog.temp
 
 # Remove special files
 rm README.md
 rm CHANGES.md
 rm -r "bin"
 
-# Add any new files, disable error trapping and then check to see if there are any results, if not, don't run the svn add command as it fails.
+# Disable error trapping and then check to see if there are any results, if not, don't run the svn add command as it fails.
 set +e
 svn status | grep -v "^.[ \t]*\..*" | grep "^?"
 if (( $? == 0 )); then
-        set -e
-        svn status | grep -v "^.[ \t]*\..*" | grep "^?" | awk '{print $2}' | xargs svn add $SVN_OPTIONS
+	set -e
+	svn status | grep -v "^.[ \t]*\..*" | grep "^?" | awk '{print $2}' | xargs svn add $SVN_OPTIONS
 fi
+
+# Find any deleted files and run svn delete.
+set +e
+tar -df "$TARNAME" 2>&1 | grep "No such file or directory" 
+if (( $? == 0 )); then
+	set -e
+	tar -df "$TARNAME" 2>&1 | grep "No such file or directory" | sed -e "s/tar: \(.*\): Warning:.*/\1/g" | xargs svn delete $SVN_OPTIONS
+fi
+
 set -e
+
+rm "$TARFILE"
 
 # Pause to allow checking
 echo "About to commit $VERSION. Double-check $TMPDIR to make sure everything looks fine."
@@ -85,4 +105,4 @@ svn copy "$PLUGINSVN/trunk" "$PLUGINSVN/tags/$VERSION" -m "Tagged v$VERSION." $S
 
 # Go back to where we started and clean up the temp directory.
 cd "$PLUGINDIR"
-rm -rf "$TEMPDIR"
+rm -rf "$TEMPDIR$INBIN"
