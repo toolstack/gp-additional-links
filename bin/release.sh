@@ -10,6 +10,10 @@ PLUGINDIR="$PWD"
 PLUGINSVN="https://plugins.svn.wordpress.org/$PLUGIN"
 TODAY=`date +'%B %d, %Y'`
 
+if [ "$2" !=  "" ]; then
+	SVN_OPTIONS=" --username $2"
+fi
+
 # Fail on any error
 set -e
 
@@ -57,9 +61,9 @@ rm -r "bin"
 # Add any new files, disable error trapping and then check to see if there are any results, if not, don't run the svn add command as it fails.
 set +e
 svn status | grep -v "^.[ \t]*\..*" | grep "^?"
-if $? -neq 0; then
+if (( $? == 0 )); then
         set -e
-        svn status | grep -v "^.[ \t]*\..*" | grep "^?" | awk '{print $2}' | xargs svn add
+        svn status | grep -v "^.[ \t]*\..*" | grep "^?" | awk '{print $2}' | xargs svn add $SVN_OPTIONS
 fi
 set -e
 
@@ -68,8 +72,8 @@ echo "About to commit $VERSION. Double-check $TMPDIR to make sure everything loo
 read -p "Hit Enter to continue."
 
 # Commit the changes
-svn commit -m "Updates for $VERSION release."
+svn commit -m "Updates for $VERSION release." $SVN_OPTIONS
 
 # tag_ur_it
-svn copy "$PLUGINSVN/trunk" "$PLUGINSVN/tags/$VERSION" -m "Tagged v$VERSION."
+svn copy "$PLUGINSVN/trunk" "$PLUGINSVN/tags/$VERSION" -m "Tagged v$VERSION." $SVN_OPTIONS
 
