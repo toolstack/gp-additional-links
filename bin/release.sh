@@ -48,14 +48,15 @@ git archive --format="tar" "$TAG" | tar -C "$TMPDIR" -xf -
 cd "$TMPDIR"
 
 # Run build tasks
-sed -e "s/{{TAG}}/$VERSION/g" < "$PLUGINDIR/bin/readme.txt" > readme.one
-sed -e "s/{{DATE}}/$TODAY/g" < readme.one > readme.two
-cat readme.two "$PLUGINDIR/bin/changelog.txt" > readme.txt
-rm readme.one
-rm readme.two
+sed -e "s/{{TAG}}/$VERSION/g" < "$PLUGINDIR/bin/readme.template" > readme.temp
+sed -e "s/##\(.*\)/==\1 ==/g" < "$PLUGINDIR/CHANGES.md" > changelog.temp
+cat readme.temp changelog.temp > readme.txt
+rm readme.temp
+rm changelog.txt
 
 # Remove special files
 rm README.md
+rm CHANGES.md
 rm -r "bin"
 
 # Add any new files, disable error trapping and then check to see if there are any results, if not, don't run the svn add command as it fails.
