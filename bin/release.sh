@@ -43,6 +43,18 @@ else
 	VERSION="$TAG"
 fi
 
+
+# Disable error trapping and then check if it already exist in SVN.
+set +e
+
+svn info "$PLUGINSVN/tags/$VERSION"
+if (( $? == 0 )); then
+	echo "Tag already exists in SVN!"
+	exit 1
+fi
+
+set -e
+
 if [ -d "$TMPDIR" ]; then
 	# Wipe it clean
 	rm -rf "$TMPDIR"
