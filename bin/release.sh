@@ -79,7 +79,7 @@ cd "$TMPDIR"
 
 # Run build tasks
 sed -e "s/{{TAG}}/$VERSION/g" < "$PLUGINDIR/bin/readme.template" > readme.temp
-sed -e "s/##\(.*\)/==\1 ==/g" < "$PLUGINDIR/CHANGES.md" > changelog.temp
+sed -e "s/##\(.*\)/=\1 =/g" < "$PLUGINDIR/CHANGES.md" > changelog.temp
 cat readme.temp changelog.temp > readme.txt
 rm readme.temp
 rm changelog.temp
