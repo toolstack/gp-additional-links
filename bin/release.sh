@@ -4,6 +4,11 @@
 
 TAG=$1
 
+# Check to see if we're in the bin directory, if so go up one as the script assumes we're in the root of the git repo.
+if [ "${PWD##*/}" == "bin" ]; then
+	cd ..
+fi
+
 PLUGIN="gp-additional-links"
 TMPDIR=/tmp/release-svn
 PLUGINDIR="$PWD"
@@ -78,3 +83,6 @@ svn commit -m "Updates for $VERSION release." $SVN_OPTIONS
 # tag_ur_it
 svn copy "$PLUGINSVN/trunk" "$PLUGINSVN/tags/$VERSION" -m "Tagged v$VERSION." $SVN_OPTIONS
 
+# Go back to where we started and clean up the temp directory.
+cd "$PLUGINDIR"
+rm -rf "$TEMPDIR"
