@@ -4,9 +4,11 @@
 #
 # Notes:
 #		- You must pass in a valid tag to the script as the first parameter
-#		- You can pass an SVN user name as the second parameter of the script if your SVN account is not the same as your current user id.
+#		- You can pass an SVN user name (case sensitive) as the second parameter of the script if your SVN account is not the same as your current user id.
+#       - You may be prompted for your SVN password.
 #		- By default the plugin name used for WordPress.org is the directory name, if this is not the case, change the "PLUGIN=" line below.
-#		- 
+#		- If the tag already exists in SVN the script will exit.
+#		- The script will handle both added and deleted files.
 
 TAG=$1
 INBIN=""
@@ -33,6 +35,7 @@ set -e
 # Is the tag valid?
 if [ -z "$TAG" ] || ! git rev-parse "$TAG" > /dev/null; then
 	echo "Invalid tag. Make sure you tag before trying to release."
+	cd "$PLUGINDIR$INBIN"
 	exit 1
 fi
 
@@ -50,6 +53,7 @@ set +e
 svn info "$PLUGINSVN/tags/$VERSION"
 if (( $? == 0 )); then
 	echo "Tag already exists in SVN!"
+	cd "$PLUGINDIR$INBIN"
 	exit 1
 fi
 
@@ -107,14 +111,18 @@ rm "$TARFILE"
 
 # Pause to allow checking
 echo "About to commit $VERSION. Double-check $TMPDIR to make sure everything looks fine."
-read -p "Hit Enter to continue."
+read -p "Type 'YES' in all capitals and then return to continue."
 
-# Commit the changes
-svn commit -m "Updates for $VERSION release." $SVN_OPTIONS
+if [[ "$REPLY" == "YES" ]]; then
 
-# tag_ur_it
-svn copy "$PLUGINSVN/trunk" "$PLUGINSVN/tags/$VERSION" -m "Tagged v$VERSION." $SVN_OPTIONS
+	# Commit the changes
+	svn commit -m "Updates for $VERSION release." $SVN_OPTIONS
+
+	# tag_ur_it
+	svn copy "$PLUGINSVN/trunk" "$PLUGINSVN/tags/$VERSION" -m "Tagged v$VERSION." $SVN_OPTIONS
+
+fi
 
 # Go back to where we started and clean up the temp directory.
-cd "$PLUGINDIR"
-rm -rf "$TEMPDIR$INBIN"
+cd "$PLUGINDIR$INBIN"
+rm -rf "$TEMPDIR"
