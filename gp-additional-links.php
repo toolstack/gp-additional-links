@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: GlotPress Additional Links
+Plugin Name: GP Additional Links
 Plugin URI: http://glot-o-matic.com/gp-additional-links
 Description: Add additional links to the GlotPress side menu and the WordPress admin menu.
 Version: 0.6
-Author: gregross
+Author: GregRoss
 Author URI: http://toolstack.com
 Tags: glotpress, glotpress plugin, translate
 License: GPLv2 or later
